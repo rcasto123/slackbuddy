@@ -1,1061 +1,600 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SlackBuddy â Your AI Companion for Slack</title>
-  <meta name="description" content="SlackBuddy supercharges your Slack workspace with AI-powered replies and real-time mood tracking. Work smarter, connect deeper." />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg: #0a0a0f;
-      --bg-card: #12121a;
-      --bg-card2: #16161f;
-      --border: rgba(255,255,255,0.07);
-      --accent: #7c3aed;
-      --accent2: #a855f7;
-      --accent3: #06d6a0;
-      --text: #f0f0f8;
-      --muted: #8b8ba0;
-      --radius: 16px;
-    }
-
-    html { scroll-behavior: smooth; }
-
-    body {
-      font-family: 'Inter', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.6;
-      overflow-x: hidden;
-    }
-
-    /* ââ NAV ââ */
-    nav {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      z-index: 100;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 18px 6vw;
-      background: rgba(10,10,15,0.8);
-      backdrop-filter: blur(16px);
-      border-bottom: 1px solid var(--border);
-    }
-
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: 800;
-      font-size: 1.2rem;
-      letter-spacing: -0.02em;
-      text-decoration: none;
-      color: var(--text);
-    }
-
-    .logo-icon {
-      width: 34px; height: 34px;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 18px;
-    }
-
-    nav ul {
-      display: flex; list-style: none; gap: 32px;
-    }
-
-    nav ul a {
-      color: var(--muted);
-      text-decoration: none;
-      font-size: 0.9rem;
-      font-weight: 500;
-      transition: color 0.2s;
-    }
-    nav ul a:hover { color: var(--text); }
-
-    .nav-cta {
-      background: var(--accent);
-      color: #fff !important;
-      padding: 9px 20px;
-      border-radius: 8px;
-      font-weight: 600 !important;
-      font-size: 0.88rem !important;
-      transition: background 0.2s, transform 0.15s !important;
-    }
-    .nav-cta:hover {
-      background: var(--accent2) !important;
-      transform: translateY(-1px);
-    }
-
-    /* ââ HERO ââ */
-    .hero {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 120px 6vw 80px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .hero::before {
-      content: '';
-      position: absolute;
-      top: -200px; left: 50%;
-      transform: translateX(-50%);
-      width: 900px; height: 600px;
-      background: radial-gradient(ellipse, rgba(124,58,237,0.25) 0%, transparent 70%);
-      pointer-events: none;
-    }
-
-    .hero-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(124,58,237,0.12);
-      border: 1px solid rgba(124,58,237,0.3);
-      color: var(--accent2);
-      font-size: 0.82rem;
-      font-weight: 600;
-      padding: 6px 14px;
-      border-radius: 99px;
-      margin-bottom: 32px;
-      letter-spacing: 0.02em;
-    }
-
-    .hero-badge span { font-size: 14px; }
-
-    h1 {
-      font-size: clamp(2.8rem, 7vw, 5.5rem);
-      font-weight: 900;
-      letter-spacing: -0.03em;
-      line-height: 1.05;
-      max-width: 900px;
-      margin-bottom: 24px;
-    }
-
-    h1 .gradient {
-      background: linear-gradient(135deg, var(--accent2) 0%, var(--accent3) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .hero-sub {
-      font-size: clamp(1rem, 2.2vw, 1.25rem);
-      color: var(--muted);
-      max-width: 580px;
-      margin-bottom: 44px;
-      font-weight: 400;
-    }
-
-    .hero-actions {
-      display: flex;
-      gap: 14px;
-      flex-wrap: wrap;
-      justify-content: center;
-      margin-bottom: 64px;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      color: #fff;
-      padding: 14px 30px;
-      border-radius: 10px;
-      font-weight: 700;
-      font-size: 1rem;
-      text-decoration: none;
-      transition: opacity 0.2s, transform 0.15s;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .btn-primary:hover { opacity: 0.9; transform: translateY(-2px); }
-
-    .btn-secondary {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 14px 28px;
-      border-radius: 10px;
-      font-weight: 600;
-      font-size: 1rem;
-      text-decoration: none;
-      transition: border-color 0.2s, transform 0.15s;
-    }
-    .btn-secondary:hover {
-      border-color: rgba(255,255,255,0.2);
-      transform: translateY(-2px);
-    }
-
-    /* ââ HERO VISUAL ââ */
-    .hero-visual {
-      width: 100%;
-      max-width: 820px;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      overflow: hidden;
-      box-shadow: 0 40px 120px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04);
-    }
-
-    .mock-bar {
-      background: #1a1a25;
-      padding: 12px 16px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      border-bottom: 1px solid var(--border);
-    }
-    .mock-dot { width: 10px; height: 10px; border-radius: 50%; }
-    .mock-dot.r { background: #ff5f57; }
-    .mock-dot.y { background: #febc2e; }
-    .mock-dot.g { background: #28c840; }
-    .mock-title {
-      margin-left: auto; margin-right: auto;
-      font-size: 0.78rem;
-      color: var(--muted);
-      font-weight: 500;
-    }
-
-    .mock-body {
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .chat-msg {
-      display: flex;
-      gap: 12px;
-      align-items: flex-start;
-    }
-
-    .chat-msg.right {
-      flex-direction: row-reverse;
-    }
-
-    .avatar {
-      width: 36px; height: 36px;
-      border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 16px;
-      flex-shrink: 0;
-    }
-    .avatar.purple { background: linear-gradient(135deg, #7c3aed, #a855f7); }
-    .avatar.teal { background: linear-gradient(135deg, #06b6d4, #06d6a0); }
-    .avatar.orange { background: linear-gradient(135deg, #f59e0b, #ef4444); }
-
-    .bubble {
-      background: var(--bg-card2);
-      border: 1px solid var(--border);
-      padding: 12px 16px;
-      border-radius: 12px;
-      font-size: 0.88rem;
-      max-width: 480px;
-      line-height: 1.5;
-    }
-    .chat-msg.right .bubble {
-      background: rgba(124,58,237,0.15);
-      border-color: rgba(124,58,237,0.25);
-    }
-
-    .bubble .name {
-      font-weight: 700;
-      font-size: 0.78rem;
-      margin-bottom: 4px;
-      color: var(--accent2);
-    }
-    .chat-msg.right .bubble .name { color: var(--accent3); }
-
-    .buddy-suggestion {
-      background: rgba(6,214,160,0.06);
-      border: 1px solid rgba(6,214,160,0.2);
-      border-radius: 12px;
-      padding: 14px 16px;
-      font-size: 0.82rem;
-      color: var(--text);
-      display: flex;
-      gap: 10px;
-      align-items: flex-start;
-    }
-
-    .buddy-label {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      background: rgba(6,214,160,0.12);
-      color: var(--accent3);
-      font-size: 0.72rem;
-      font-weight: 700;
-      padding: 3px 9px;
-      border-radius: 99px;
-      margin-bottom: 6px;
-      letter-spacing: 0.04em;
-    }
-
-    .mood-bar {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-top: 4px;
-    }
-
-    .mood-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      padding: 5px 12px;
-      border-radius: 99px;
-      font-size: 0.78rem;
-      font-weight: 600;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.08);
-    }
-    .mood-chip.up { border-color: rgba(6,214,160,0.3); color: #06d6a0; }
-    .mood-chip.mid { border-color: rgba(251,191,36,0.3); color: #fbbf24; }
-    .mood-chip.low { border-color: rgba(239,68,68,0.3); color: #ef4444; }
-
-    /* ââ SECTION BASE ââ */
-    section { padding: 100px 6vw; }
-
-    .section-label {
-      font-size: 0.8rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--accent2);
-      margin-bottom: 12px;
-    }
-
-    h2 {
-      font-size: clamp(2rem, 4vw, 3rem);
-      font-weight: 800;
-      letter-spacing: -0.03em;
-      line-height: 1.1;
-      margin-bottom: 16px;
-    }
-
-    .section-sub {
-      color: var(--muted);
-      font-size: 1.05rem;
-      max-width: 520px;
-      margin-bottom: 60px;
-    }
-
-    /* ââ FEATURES ââ */
-    #features {
-      background: linear-gradient(180deg, var(--bg) 0%, #0d0d17 100%);
-    }
-
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 24px;
-      max-width: 1100px;
-      margin: 0 auto;
-    }
-
-    .feature-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 32px;
-      transition: border-color 0.25s, transform 0.2s;
-      position: relative;
-      overflow: hidden;
-    }
-    .feature-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--accent2), transparent);
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-    .feature-card:hover { border-color: rgba(168,85,247,0.3); transform: translateY(-4px); }
-    .feature-card:hover::before { opacity: 1; }
-
-    .feature-icon {
-      width: 52px; height: 52px;
-      border-radius: 14px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 24px;
-      margin-bottom: 20px;
-    }
-    .feature-icon.purple { background: rgba(124,58,237,0.15); }
-    .feature-icon.teal   { background: rgba(6,214,160,0.12); }
-    .feature-icon.blue   { background: rgba(59,130,246,0.12); }
-    .feature-icon.pink   { background: rgba(236,72,153,0.12); }
-
-    .feature-card h3 {
-      font-size: 1.15rem;
-      font-weight: 700;
-      margin-bottom: 10px;
-      letter-spacing: -0.01em;
-    }
-
-    .feature-card p {
-      color: var(--muted);
-      font-size: 0.92rem;
-      line-height: 1.65;
-    }
-
-    /* ââ HOW IT WORKS ââ */
-    #how-it-works { background: #0d0d17; }
-
-    .steps {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 0;
-      max-width: 900px;
-      margin: 0 auto;
-      position: relative;
-    }
-
-    .steps::before {
-      content: '';
-      position: absolute;
-      top: 28px; left: 60px; right: 60px;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--border), var(--border), transparent);
-    }
-
-    .step {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      padding: 0 24px;
-      gap: 16px;
-    }
-
-    .step-num {
-      width: 56px; height: 56px;
-      border-radius: 50%;
-      background: var(--bg-card);
-      border: 2px solid var(--accent);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.2rem;
-      font-weight: 800;
-      color: var(--accent2);
-      z-index: 1;
-      box-shadow: 0 0 0 6px var(--bg);
-    }
-
-    .step h3 {
-      font-size: 1rem;
-      font-weight: 700;
-      letter-spacing: -0.01em;
-    }
-
-    .step p {
-      color: var(--muted);
-      font-size: 0.875rem;
-      line-height: 1.6;
-    }
-
-    /* ââ MOOD SECTION ââ */
-    #mood {
-      background: var(--bg);
-    }
-
-    .mood-section-inner {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 60px;
-      align-items: center;
-      max-width: 1100px;
-      margin: 0 auto;
-    }
-
-    @media (max-width: 768px) {
-      .mood-section-inner { grid-template-columns: 1fr; }
-    }
-
-    .mood-visual {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 28px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .mood-visual-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 4px;
-    }
-
-    .mood-visual-title {
-      font-weight: 700;
-      font-size: 0.95rem;
-    }
-
-    .live-badge {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.72rem;
-      font-weight: 700;
-      color: var(--accent3);
-      letter-spacing: 0.04em;
-    }
-
-    .live-dot {
-      width: 7px; height: 7px;
-      border-radius: 50%;
-      background: var(--accent3);
-      animation: pulse 1.5s ease-in-out infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.5; transform: scale(0.8); }
-    }
-
-    .mood-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .mood-avatar {
-      width: 36px; height: 36px;
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 16px;
-      flex-shrink: 0;
-      background: var(--bg-card2);
-      border: 1px solid var(--border);
-    }
-
-    .mood-info { flex: 1; }
-
-    .mood-name {
-      font-size: 0.85rem;
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
-
-    .mood-progress-bar {
-      height: 5px;
-      background: rgba(255,255,255,0.06);
-      border-radius: 99px;
-      overflow: hidden;
-    }
-
-    .mood-progress-fill {
-      height: 100%;
-      border-radius: 99px;
-      transition: width 0.5s ease;
-    }
-    .fill-green { background: linear-gradient(90deg, #06d6a0, #10b981); }
-    .fill-yellow { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
-    .fill-blue { background: linear-gradient(90deg, #60a5fa, #3b82f6); }
-    .fill-purple { background: linear-gradient(90deg, #a855f7, #7c3aed); }
-
-    .mood-score {
-      font-size: 0.78rem;
-      color: var(--muted);
-      font-weight: 600;
-    }
-
-    .mood-insight {
-      background: rgba(124,58,237,0.08);
-      border: 1px solid rgba(124,58,237,0.18);
-      border-radius: 10px;
-      padding: 12px 16px;
-      font-size: 0.82rem;
-      color: var(--muted);
-      display: flex;
-      gap: 8px;
-      align-items: flex-start;
-      margin-top: 4px;
-    }
-    .mood-insight span:first-child { font-size: 16px; }
-
-    /* ââ SOCIAL PROOF ââ */
-    #social-proof {
-      background: linear-gradient(180deg, var(--bg) 0%, #0d0d17 100%);
-      text-align: center;
-    }
-
-    .stats-row {
-      display: flex;
-      gap: 48px;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin-bottom: 72px;
-    }
-
-    .stat { text-align: center; }
-
-    .stat-num {
-      font-size: 2.8rem;
-      font-weight: 900;
-      letter-spacing: -0.04em;
-      background: linear-gradient(135deg, var(--accent2), var(--accent3));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .stat-label {
-      font-size: 0.85rem;
-      color: var(--muted);
-      font-weight: 500;
-    }
-
-    .testimonials {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
-      max-width: 960px;
-      margin: 0 auto;
-    }
-
-    .testimonial {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 28px;
-      text-align: left;
-    }
-
-    .testimonial-text {
-      font-size: 0.93rem;
-      color: var(--text);
-      line-height: 1.65;
-      margin-bottom: 20px;
-    }
-
-    .testimonial-author {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .author-avatar {
-      width: 38px; height: 38px;
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 16px;
-    }
-
-    .author-name {
-      font-size: 0.85rem;
-      font-weight: 700;
-    }
-    .author-role {
-      font-size: 0.78rem;
-      color: var(--muted);
-    }
-
-    .stars {
-      color: #fbbf24;
-      font-size: 0.85rem;
-      margin-bottom: 14px;
-    }
-
-    /* ââ CTA ââ */
-    #cta {
-      text-align: center;
-      background: #0d0d17;
-      position: relative;
-      overflow: hidden;
-    }
-
-    #cta::before {
-      content: '';
-      position: absolute;
-      bottom: -100px; left: 50%;
-      transform: translateX(-50%);
-      width: 700px; height: 400px;
-      background: radial-gradient(ellipse, rgba(124,58,237,0.2) 0%, transparent 70%);
-      pointer-events: none;
-    }
-
-    .cta-inner {
-      max-width: 640px;
-      margin: 0 auto;
-      position: relative;
-    }
-
-    .cta-inner h2 {
-      margin-bottom: 18px;
-    }
-
-    .cta-inner p {
-      color: var(--muted);
-      font-size: 1.05rem;
-      margin-bottom: 40px;
-    }
-
-    .email-form {
-      display: flex;
-      gap: 10px;
-      max-width: 460px;
-      margin: 0 auto 16px;
-    }
-
-    .email-form input {
-      flex: 1;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 13px 18px;
-      border-radius: 10px;
-      font-size: 0.95rem;
-      font-family: inherit;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    .email-form input:focus { border-color: var(--accent); }
-    .email-form input::placeholder { color: var(--muted); }
-
-    .email-form button {
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      color: #fff;
-      border: none;
-      padding: 13px 22px;
-      border-radius: 10px;
-      font-weight: 700;
-      font-size: 0.95rem;
-      cursor: pointer;
-      transition: opacity 0.2s, transform 0.15s;
-      white-space: nowrap;
-      font-family: inherit;
-    }
-    .email-form button:hover { opacity: 0.88; transform: translateY(-1px); }
-
-    .cta-note {
-      font-size: 0.78rem;
-      color: var(--muted);
-    }
-
-    /* ââ FOOTER ââ */
-    footer {
-      background: var(--bg);
-      border-top: 1px solid var(--border);
-      padding: 40px 6vw;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 20px;
-    }
-
-    .footer-logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: 800;
-      font-size: 1rem;
-      color: var(--text);
-      text-decoration: none;
-    }
-
-    .footer-logo .logo-icon {
-      width: 28px; height: 28px;
-      font-size: 14px;
-    }
-
-    .footer-links {
-      display: flex;
-      gap: 28px;
-      list-style: none;
-    }
-
-    .footer-links a {
-      color: var(--muted);
-      text-decoration: none;
-      font-size: 0.85rem;
-      transition: color 0.2s;
-    }
-    .footer-links a:hover { color: var(--text); }
-
-    .footer-copy {
-      font-size: 0.8rem;
-      color: var(--muted);
-    }
-
-    /* ââ RESPONSIVE ââ */
-    @media (max-width: 640px) {
-      nav ul { display: none; }
-      .steps::before { display: none; }
-      .steps { gap: 40px; }
-      .email-form { flex-direction: column; }
-      .stats-row { gap: 32px; }
-      footer { flex-direction: column; align-items: flex-start; }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SlackBuddy â Your AI Slack Copilot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================
+   DESIGN SYSTEM â Electric Midnight
+   - Syne for display: geometric punch, not Inter
+   - Electric mint (#00E5A0): calm AI, fresh thinking
+   - Amber (#FFB627): warmth, mood, emotional intelligence
+   - Deep navy (#0C1220): atmosphere, not flat black
+   - Asymmetric editorial grid
+============================================ */
+:root {
+  --bg:            #0C1220;
+  --bg-2:          #111928;
+  --surface:       #16213A;
+  --surface-2:     #1D2D4E;
+  --border:        rgba(255,255,255,0.07);
+  --border-bright: rgba(0,229,160,0.25);
+  --mint:          #00E5A0;
+  --mint-dim:      rgba(0,229,160,0.12);
+  --mint-glow:     rgba(0,229,160,0.35);
+  --amber:         #FFB627;
+  --amber-dim:     rgba(255,182,39,0.12);
+  --violet:        #9B6DFF;
+  --text-primary:  #F0F4FF;
+  --text-secondary:#8A9BC4;
+  --text-muted:    #4D6080;
+  --font-display:  'Syne', sans-serif;
+  --font-body:     'DM Sans', sans-serif;
+  --font-mono:     'JetBrains Mono', monospace;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring:   cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text-primary);line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased;}
+
+/* Atmospheric background */
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 60% at 10% 20%,rgba(0,229,160,0.055) 0%,transparent 60%),radial-gradient(ellipse 60% 80% at 90% 80%,rgba(155,109,255,0.06) 0%,transparent 60%),radial-gradient(ellipse 40% 40% at 60% 40%,rgba(255,182,39,0.03) 0%,transparent 50%);pointer-events:none;z-index:0;}
+
+/* Grid texture */
+body::after{content:'';position:fixed;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 40px,rgba(255,255,255,0.012) 40px,rgba(255,255,255,0.012) 41px),repeating-linear-gradient(90deg,transparent,transparent 40px,rgba(255,255,255,0.012) 40px,rgba(255,255,255,0.012) 41px);pointer-events:none;z-index:0;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 clamp(1.5rem,4vw,4rem);height:64px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:rgba(12,18,32,0.85);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.nav-logo-mark{width:32px;height:32px;background:var(--mint);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:800;font-size:14px;color:var(--bg);letter-spacing:-0.5px;flex-shrink:0;}
+.nav-logo-text{font-family:var(--font-display);font-weight:700;font-size:1.05rem;color:var(--text-primary);letter-spacing:-0.02em;}
+.nav-links{display:flex;align-items:center;gap:2rem;list-style:none;}
+.nav-links a{font-size:.875rem;color:var(--text-secondary);text-decoration:none;transition:color .2s;font-weight:400;}
+.nav-links a:hover{color:var(--text-primary);}
+.nav-cta{background:var(--mint);color:var(--bg)!important;padding:.5rem 1.25rem;border-radius:6px;font-weight:600!important;transition:opacity .2s,transform .2s var(--ease-spring)!important;}
+.nav-cta:hover{opacity:.9;transform:translateY(-1px)!important;}
+
+/* HERO */
+.hero{position:relative;z-index:1;min-height:100svh;padding-top:64px;display:grid;grid-template-columns:1fr 1.1fr;overflow:hidden;}
+.hero-content{display:flex;flex-direction:column;justify-content:center;padding:clamp(3rem,6vw,6rem) clamp(1.5rem,4vw,5rem);padding-right:2rem;}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:var(--mint-dim);border:1px solid var(--border-bright);border-radius:100px;padding:.35rem .875rem;font-size:.75rem;font-weight:500;color:var(--mint);letter-spacing:.04em;text-transform:uppercase;width:fit-content;margin-bottom:2rem;animation:fadeUp .6s var(--ease-out-expo) both;}
+.badge-dot{width:6px;height:6px;background:var(--mint);border-radius:50%;animation:pulse-dot 2s ease-in-out infinite;}
+@keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(.8);}}
+.hero-headline{font-family:var(--font-display);font-size:clamp(3rem,5.5vw,5.25rem);font-weight:800;line-height:1.0;letter-spacing:-.035em;color:var(--text-primary);animation:fadeUp .6s .08s var(--ease-out-expo) both;}
+.hero-headline em{font-style:normal;color:var(--mint);position:relative;}
+.hero-headline em::after{content:'';position:absolute;bottom:2px;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--mint),transparent);opacity:.5;}
+.hero-subhead{font-size:clamp(1rem,1.4vw,1.15rem);color:var(--text-secondary);line-height:1.7;margin-top:1.5rem;max-width:46ch;font-weight:300;animation:fadeUp .6s .14s var(--ease-out-expo) both;}
+.hero-actions{display:flex;align-items:center;gap:1rem;margin-top:2.5rem;flex-wrap:wrap;animation:fadeUp .6s .2s var(--ease-out-expo) both;}
+.btn-primary{display:inline-flex;align-items:center;gap:8px;background:var(--mint);color:var(--bg);padding:.8rem 1.75rem;border-radius:8px;font-weight:600;font-size:.9375rem;text-decoration:none;border:none;cursor:pointer;transition:transform .2s var(--ease-spring),box-shadow .2s;font-family:var(--font-body);}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 32px var(--mint-glow);}
+.btn-ghost{display:inline-flex;align-items:center;gap:8px;color:var(--text-secondary);padding:.8rem 1.25rem;border-radius:8px;font-size:.9375rem;text-decoration:none;border:1px solid var(--border);cursor:pointer;background:transparent;transition:color .2s,border-color .2s;font-family:var(--font-body);}
+.btn-ghost:hover{color:var(--text-primary);border-color:rgba(255,255,255,0.2);}
+.hero-social-proof{display:flex;align-items:center;gap:12px;margin-top:2.5rem;animation:fadeUp .6s .26s var(--ease-out-expo) both;}
+.hero-avatars{display:flex;}
+.hero-avatars span{width:32px;height:32px;border-radius:50%;border:2px solid var(--bg);margin-right:-8px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;}
+.hero-avatars span:nth-child(1){background:#4A9FFF;}
+.hero-avatars span:nth-child(2){background:#FF6B6B;}
+.hero-avatars span:nth-child(3){background:var(--amber);color:var(--bg);}
+.hero-avatars span:nth-child(4){background:var(--violet);}
+.hero-social-text{font-size:.8125rem;color:var(--text-secondary);}
+.hero-social-text strong{color:var(--text-primary);font-weight:500;}
+
+/* HERO VISUAL */
+.hero-visual{position:relative;display:flex;align-items:center;justify-content:flex-start;padding:clamp(2rem,4vw,5rem) 2rem;padding-right:clamp(1.5rem,4vw,4rem);overflow:visible;}
+.slack-mockup{width:100%;max-width:520px;background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:0 0 0 1px rgba(0,229,160,.05),0 40px 80px rgba(0,0,0,.5),0 0 120px rgba(0,229,160,.04);animation:fadeUp .7s .1s var(--ease-out-expo) both;position:relative;z-index:2;}
+.slack-topbar{background:var(--surface-2);padding:12px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);}
+.slack-dots{display:flex;gap:5px;}
+.slack-dots span{width:10px;height:10px;border-radius:50%;}
+.slack-dots span:nth-child(1){background:#FF5F56;}
+.slack-dots span:nth-child(2){background:#FFBD2E;}
+.slack-dots span:nth-child(3){background:#27C93F;}
+.slack-channel-name{font-family:var(--font-mono);font-size:.75rem;color:var(--text-secondary);}
+.slack-channel-name strong{color:var(--text-primary);font-weight:500;}
+.slack-body{padding:16px;display:flex;flex-direction:column;gap:14px;min-height:320px;}
+.slack-msg{display:flex;gap:10px;align-items:flex-start;}
+.slack-avatar{width:32px;height:32px;border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;}
+.slack-msg-name{font-size:.75rem;font-weight:600;color:var(--text-primary);margin-bottom:3px;}
+.slack-msg-name span{font-size:.68rem;color:var(--text-muted);font-weight:400;margin-left:6px;}
+.slack-msg-text{font-size:.8125rem;color:var(--text-secondary);line-height:1.5;}
+.slack-msg-text strong{color:var(--text-primary);font-weight:500;}
+
+/* Buddy panel */
+.buddy-panel{margin:4px 0 0 42px;background:linear-gradient(135deg,rgba(0,229,160,.06),rgba(0,229,160,.02));border:1px solid var(--border-bright);border-radius:10px;padding:12px 14px;position:relative;overflow:hidden;}
+.buddy-panel::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--mint);}
+.buddy-panel-header{display:flex;align-items:center;gap:6px;margin-bottom:10px;}
+.buddy-icon{width:18px;height:18px;background:var(--mint);border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.buddy-panel-label{font-family:var(--font-mono);font-size:.675rem;color:var(--mint);letter-spacing:.06em;text-transform:uppercase;font-weight:500;}
+.reply-suggestions{display:flex;flex-direction:column;gap:6px;}
+.reply-chip{padding:7px 12px;border-radius:6px;border:1px solid rgba(0,229,160,.15);background:rgba(0,229,160,.05);font-size:.8rem;color:var(--text-secondary);cursor:pointer;transition:background .15s,border-color .15s,color .15s;display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.reply-chip:hover{background:rgba(0,229,160,.1);border-color:rgba(0,229,160,.3);color:var(--text-primary);}
+.reply-chip.selected{background:rgba(0,229,160,.12);border-color:var(--mint);color:var(--mint);}
+.chip-tone{font-size:.675rem;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,.05);color:var(--text-muted);flex-shrink:0;font-family:var(--font-mono);}
+
+/* Floating cards */
+.mood-card{position:absolute;bottom:-20px;right:-24px;background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;width:190px;box-shadow:0 20px 40px rgba(0,0,0,.4);animation:fadeUp .7s .4s var(--ease-out-expo) both;z-index:3;}
+.mood-card-label{font-family:var(--font-mono);font-size:.675rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;}
+.mood-bar-item{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.mood-bar-name{font-family:var(--font-mono);font-size:.68rem;color:var(--text-muted);width:52px;flex-shrink:0;}
+.mood-bar-track{flex:1;height:5px;background:var(--border);border-radius:100px;overflow:hidden;}
+.mood-bar-fill{height:100%;border-radius:100px;}
+.status-card{position:absolute;top:32px;right:-32px;background:var(--surface-2);border:1px solid rgba(255,182,39,.25);border-radius:100px;padding:8px 14px;display:flex;align-items:center;gap:8px;box-shadow:0 8px 24px rgba(0,0,0,.3);animation:fadeUp .7s .55s var(--ease-out-expo) both;z-index:3;white-space:nowrap;}
+.status-emoji{font-size:14px;}
+.status-text{font-size:.75rem;color:var(--amber);font-weight:500;}
+.status-sub{font-size:.675rem;color:var(--text-muted);}
+
+/* FEATURES */
+section{position:relative;z-index:1;}
+.section-label{font-family:var(--font-mono);font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);margin-bottom:1rem;}
+.features{padding:clamp(5rem,10vw,10rem) clamp(1.5rem,4vw,5rem);border-top:1px solid var(--border);}
+.features-header{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:end;margin-bottom:clamp(3rem,6vw,5rem);}
+.features-title{font-family:var(--font-display);font-size:clamp(2.25rem,4vw,3.5rem);font-weight:800;letter-spacing:-.03em;line-height:1.08;color:var(--text-primary);}
+.features-title em{font-style:normal;color:var(--mint);}
+.features-desc{font-size:1rem;color:var(--text-secondary);line-height:1.75;font-weight:300;max-width:44ch;}
+.features-grid{display:grid;grid-template-columns:1.3fr 1fr;grid-template-rows:auto auto;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:16px;overflow:hidden;}
+.feature-card{background:var(--bg-2);padding:clamp(1.75rem,3vw,2.75rem);position:relative;overflow:hidden;transition:background .3s;}
+.feature-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 60% at 80% -10%,rgba(0,229,160,.06) 0%,transparent 70%);opacity:0;transition:opacity .4s;}
+.feature-card:hover{background:var(--surface);}
+.feature-card:hover::before{opacity:1;}
+.feature-card.featured{grid-row:span 2;border-right:1px solid var(--border);}
+.feature-card.amber-accent::before{background:radial-gradient(ellipse 60% 60% at 80% -10%,rgba(255,182,39,.07) 0%,transparent 70%);}
+.feature-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:1.5rem;font-size:20px;}
+.feature-icon.mint{background:var(--mint-dim);border:1px solid var(--border-bright);}
+.feature-icon.amber{background:var(--amber-dim);border:1px solid rgba(255,182,39,.25);}
+.feature-icon.violet{background:rgba(155,109,255,.1);border:1px solid rgba(155,109,255,.2);}
+.feature-number{font-family:var(--font-mono);font-size:.675rem;color:var(--text-muted);letter-spacing:.08em;margin-bottom:.75rem;text-transform:uppercase;}
+.feature-title{font-family:var(--font-display);font-size:clamp(1.2rem,2vw,1.5rem);font-weight:700;letter-spacing:-.02em;color:var(--text-primary);margin-bottom:.75rem;line-height:1.2;}
+.feature-desc{font-size:.9rem;color:var(--text-secondary);line-height:1.7;font-weight:300;}
+.feature-demo{margin-top:2rem;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:8px;}
+.demo-msg-in{font-size:.78rem;background:var(--surface);border:1px solid var(--border);border-radius:8px 8px 8px 2px;padding:8px 12px;color:var(--text-secondary);align-self:flex-start;max-width:85%;}
+.demo-suggestions{display:flex;flex-wrap:wrap;gap:5px;padding-top:4px;}
+.demo-chip{font-size:.7rem;padding:5px 10px;border-radius:6px;border:1px solid var(--border-bright);color:var(--mint);background:var(--mint-dim);cursor:pointer;transition:background .15s;}
+.demo-chip:hover{background:rgba(0,229,160,.2);}
+.demo-chip.chosen{font-size:.78rem;background:rgba(0,229,160,.08);border:1px solid var(--border-bright);border-radius:8px 8px 2px 8px;color:var(--mint);align-self:flex-end;padding:8px 12px;}
+.feature-mood-preview{margin-top:1.75rem;display:flex;flex-direction:column;gap:10px;}
+.mood-row{display:flex;align-items:center;gap:10px;}
+.mood-label{font-family:var(--font-mono);font-size:.7rem;color:var(--text-muted);width:64px;flex-shrink:0;}
+.mood-track{flex:1;height:6px;background:rgba(255,255,255,.05);border-radius:100px;overflow:hidden;}
+.mood-fill{height:100%;border-radius:100px;}
+.mood-val{font-family:var(--font-mono);font-size:.675rem;color:var(--text-muted);width:30px;text-align:right;flex-shrink:0;}
+
+/* HOW IT WORKS */
+.how{padding:clamp(5rem,10vw,10rem) clamp(1.5rem,4vw,5rem);border-top:1px solid var(--border);overflow:hidden;}
+.how-inner{display:grid;grid-template-columns:.9fr 1.1fr;gap:clamp(3rem,6vw,7rem);align-items:start;}
+.how-headline{font-family:var(--font-display);font-size:clamp(2rem,3.5vw,3rem);font-weight:800;letter-spacing:-.03em;line-height:1.1;color:var(--text-primary);margin-bottom:1.25rem;}
+.how-sub{font-size:.9375rem;color:var(--text-secondary);line-height:1.75;font-weight:300;margin-bottom:2.5rem;}
+.how-steps{display:flex;flex-direction:column;gap:0;position:relative;}
+.how-steps::before{content:'';position:absolute;left:19px;top:28px;bottom:28px;width:1px;background:linear-gradient(to bottom,var(--mint),var(--violet),transparent);opacity:.3;}
+.how-step{display:flex;gap:1.25rem;padding:1.25rem 0;position:relative;}
+.step-num{width:38px;height:38px;border-radius:50%;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:.75rem;color:var(--mint);flex-shrink:0;margin-top:2px;position:relative;z-index:1;}
+.step-title{font-family:var(--font-display);font-size:1rem;font-weight:700;letter-spacing:-.01em;color:var(--text-primary);margin-bottom:.35rem;}
+.step-desc{font-size:.875rem;color:var(--text-secondary);line-height:1.65;font-weight:300;}
+.how-terminal{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 40px 80px rgba(0,0,0,.4);position:sticky;top:80px;}
+.terminal-bar{background:var(--surface-2);padding:12px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);}
+.terminal-dots{display:flex;gap:5px;}
+.terminal-dots span{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.1);}
+.terminal-title{font-family:var(--font-mono);font-size:.72rem;color:var(--text-muted);}
+.terminal-body{padding:20px;font-family:var(--font-mono);font-size:.78rem;line-height:2;display:flex;flex-direction:column;gap:2px;}
+.t-line{display:flex;align-items:baseline;gap:10px;}
+.t-prompt{color:var(--mint);user-select:none;}
+.t-cmd{color:var(--text-primary);}
+.t-output{padding-left:18px;display:flex;flex-direction:column;gap:4px;margin:2px 0 8px 0;}
+.t-ok{color:var(--mint);}
+.t-info{color:var(--text-secondary);}
+.t-warn{color:var(--amber);}
+.t-cursor{display:inline-block;width:8px;height:14px;background:var(--mint);opacity:.8;animation:blink 1.2s step-end infinite;vertical-align:text-bottom;}
+@keyframes blink{0%,100%{opacity:.8;}50%{opacity:0;}}
+
+/* STATS */
+.stats{padding:clamp(4rem,8vw,7rem) clamp(1.5rem,4vw,5rem);border-top:1px solid var(--border);background:var(--bg-2);}
+.stats-inner{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:16px;overflow:hidden;}
+.stat-item{background:var(--bg-2);padding:clamp(1.5rem,3vw,2.5rem);display:flex;flex-direction:column;gap:4px;transition:background .2s;}
+.stat-item:hover{background:var(--surface);}
+.stat-value{font-family:var(--font-display);font-size:clamp(2rem,3.5vw,3rem);font-weight:800;letter-spacing:-.04em;color:var(--text-primary);line-height:1;}
+.stat-value span{color:var(--mint);}
+.stat-value.amber span{color:var(--amber);}
+.stat-label{font-size:.875rem;color:var(--text-muted);font-weight:300;margin-top:6px;}
+
+/* TESTIMONIALS */
+.testimonials{padding:clamp(5rem,10vw,10rem) clamp(1.5rem,4vw,5rem);border-top:1px solid var(--border);}
+.testimonials-header{text-align:center;margin-bottom:clamp(3rem,5vw,4.5rem);}
+.testimonials-title{font-family:var(--font-display);font-size:clamp(1.75rem,3vw,2.75rem);font-weight:800;letter-spacing:-.03em;color:var(--text-primary);margin-bottom:.75rem;}
+.testimonials-sub{font-size:.9375rem;color:var(--text-secondary);font-weight:300;}
+.testimonials-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:16px;overflow:hidden;}
+.testimonial-card{background:var(--bg-2);padding:clamp(1.5rem,2.5vw,2.25rem);transition:background .2s;position:relative;overflow:hidden;}
+.testimonial-card::after{content:'"';position:absolute;top:-10px;right:16px;font-family:var(--font-display);font-size:8rem;color:rgba(0,229,160,.04);line-height:1;pointer-events:none;}
+.testimonial-card:hover{background:var(--surface);}
+.testimonial-quote{font-size:.9375rem;color:var(--text-secondary);line-height:1.7;font-weight:300;margin-bottom:1.5rem;position:relative;z-index:1;}
+.testimonial-quote strong{color:var(--text-primary);font-weight:500;}
+.testimonial-author{display:flex;align-items:center;gap:10px;}
+.author-avatar{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;}
+.author-name{font-size:.875rem;font-weight:600;color:var(--text-primary);}
+.author-role{font-size:.75rem;color:var(--text-muted);}
+
+/* CTA */
+.cta-section{padding:clamp(5rem,10vw,10rem) clamp(1.5rem,4vw,5rem);border-top:1px solid var(--border);text-align:center;position:relative;overflow:hidden;}
+.cta-section::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(0,229,160,.07) 0%,transparent 70%);pointer-events:none;}
+.cta-label{font-family:var(--font-mono);font-size:.7rem;color:var(--mint);text-transform:uppercase;letter-spacing:.12em;margin-bottom:1.25rem;position:relative;z-index:1;}
+.cta-title{font-family:var(--font-display);font-size:clamp(2.5rem,5vw,4.5rem);font-weight:800;letter-spacing:-.04em;line-height:1.0;color:var(--text-primary);margin-bottom:1.25rem;position:relative;z-index:1;}
+.cta-title em{font-style:normal;color:var(--mint);}
+.cta-sub{font-size:1rem;color:var(--text-secondary);max-width:48ch;margin:0 auto 2.5rem;font-weight:300;line-height:1.7;position:relative;z-index:1;}
+.cta-form{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;position:relative;z-index:1;}
+.cta-input{padding:.8rem 1.25rem;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--text-primary);font-size:.9375rem;font-family:var(--font-body);width:280px;outline:none;transition:border-color .2s;}
+.cta-input::placeholder{color:var(--text-muted);}
+.cta-input:focus{border-color:var(--mint);}
+.cta-disclaimer{font-size:.75rem;color:var(--text-muted);margin-top:1rem;position:relative;z-index:1;}
+
+/* FOOTER */
+footer{border-top:1px solid var(--border);padding:clamp(2rem,4vw,3rem) clamp(1.5rem,4vw,5rem);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;position:relative;z-index:1;}
+.footer-left{display:flex;align-items:center;gap:16px;}
+.footer-logo{display:flex;align-items:center;gap:8px;text-decoration:none;}
+.footer-logo-mark{width:26px;height:26px;background:var(--mint);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:800;font-size:11px;color:var(--bg);}
+.footer-logo-text{font-family:var(--font-display);font-weight:700;font-size:.9rem;color:var(--text-primary);}
+.footer-copy{font-size:.8rem;color:var(--text-muted);}
+.footer-links{display:flex;gap:1.5rem;}
+.footer-links a{font-size:.8rem;color:var(--text-muted);text-decoration:none;transition:color .2s;}
+.footer-links a:hover{color:var(--text-secondary);}
+
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .65s var(--ease-out-expo),transform .65s var(--ease-out-expo);}
+.reveal.visible{opacity:1;transform:translateY(0);}
+.reveal-delay-1{transition-delay:.08s;}
+.reveal-delay-2{transition-delay:.16s;}
+.reveal-delay-3{transition-delay:.24s;}
+.reveal-delay-4{transition-delay:.32s;}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .hero{grid-template-columns:1fr;min-height:auto;padding-bottom:3rem;}
+  .hero-content{padding:3rem 1.5rem 2rem;padding-top:calc(64px + 3rem);}
+  .hero-visual{padding:0 1.5rem 3rem;justify-content:center;}
+  .mood-card,.status-card{display:none;}
+  .features-header{grid-template-columns:1fr;gap:1.5rem;}
+  .features-grid{grid-template-columns:1fr;}
+  .feature-card.featured{grid-row:span 1;border-right:none;}
+  .how-inner{grid-template-columns:1fr;}
+  .how-terminal{position:static;}
+  .stats-inner{grid-template-columns:repeat(2,1fr);}
+  .testimonials-grid{grid-template-columns:1fr;}
+  .nav-links{display:none;}
+  footer{flex-direction:column;align-items:flex-start;gap:1.25rem;}
+}
+</style>
 </head>
 <body>
 
-<!-- NAV -->
 <nav>
-  <a href="#" class="logo">
-    <div class="logo-icon">ð¤</div>
-    SlackBuddy
+  <a href="#" class="nav-logo">
+    <div class="nav-logo-mark">SB</div>
+    <span class="nav-logo-text">SlackBuddy</span>
   </a>
-  <ul>
+  <ul class="nav-links">
     <li><a href="#features">Features</a></li>
-    <li><a href="#how-it-works">How it works</a></li>
-    <li><a href="#mood">Mood AI</a></li>
-    <li><a href="#cta" class="nav-cta">Get early access</a></li>
+    <li><a href="#how">How it works</a></li>
+    <li><a href="#">Pricing</a></li>
+    <li><a href="#" class="nav-cta">Get early access</a></li>
   </ul>
 </nav>
 
 <!-- HERO -->
 <section class="hero">
-  <div class="hero-badge">
-    <span>â¨</span> Now in public beta
-  </div>
-  <h1>Your smarter <span class="gradient">Slack companion</span><br/>is here</h1>
-  <p class="hero-sub">SlackBuddy supercharges your workspace with AI-powered replies and real-time team mood tracking â so you can communicate faster and connect deeper.</p>
-  <div class="hero-actions">
-    <a href="#cta" class="btn-primary">ð Get early access</a>
-    <a href="#features" class="btn-secondary">See features</a>
+  <div class="hero-content">
+    <div class="hero-badge">
+      <span class="badge-dot"></span>
+      AI-Powered for Slack
+    </div>
+    <h1 class="hero-headline">
+      Slack smarter.<br>
+      Reply with <em>intent</em>.
+    </h1>
+    <p class="hero-subhead">
+      SlackBuddy lives inside Slack and acts like a thoughtful coworker â
+      drafting AI replies, reading your mood, and keeping your status honest so you
+      can actually focus on the work that matters.
+    </p>
+    <div class="hero-actions">
+      <a href="#" class="btn-primary">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        Add to Slack â free
+      </a>
+      <a href="#features" class="btn-ghost">
+        See how it works
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M3 7h8M7.5 4l3.5 3-3.5 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+    <div class="hero-social-proof">
+      <div class="hero-avatars" aria-hidden="true">
+        <span>A</span><span>M</span><span>J</span><span>R</span>
+      </div>
+      <p class="hero-social-text"><strong>2,400+ teams</strong> already working smarter</p>
+    </div>
   </div>
 
-  <!-- MOCK UI -->
   <div class="hero-visual">
-    <div class="mock-bar">
-      <div class="mock-dot r"></div>
-      <div class="mock-dot y"></div>
-      <div class="mock-dot g"></div>
-      <div class="mock-title">SlackBuddy â #team-general</div>
+    <div class="slack-mockup" role="img" aria-label="SlackBuddy in action: AI reply suggestions inside a Slack conversation">
+      <div class="slack-topbar">
+        <div class="slack-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+        <div class="slack-channel-name"><strong>#product-team</strong> Â· 3 members online</div>
+      </div>
+      <div class="slack-body">
+        <div class="slack-msg">
+          <div class="slack-avatar" style="background:#4A9FFF;color:white;" aria-hidden="true">A</div>
+          <div>
+            <div class="slack-msg-name">Alex Chen <span>10:42 AM</span></div>
+            <div class="slack-msg-text">Hey, can you give me a quick update on the <strong>Q3 launch timeline</strong>? Stakeholders are asking ð</div>
+          </div>
+        </div>
+
+        <div class="buddy-panel">
+          <div class="buddy-panel-header">
+            <div class="buddy-icon" aria-hidden="true">
+              <svg viewBox="0 0 10 10" fill="none" width="10" height="10"><path d="M2 7 L5 2 L8 7" stroke="#0C1220" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="5" cy="8.5" r=".75" fill="#0C1220"/></svg>
+            </div>
+            <span class="buddy-panel-label">SlackBuddy Â· 3 suggested replies</span>
+          </div>
+          <div class="reply-suggestions">
+            <div class="reply-chip selected" role="button" tabindex="0">
+              "We're on track for Sept 12th â I'll send the full breakdown by EOD."
+              <span class="chip-tone">professional</span>
+            </div>
+            <div class="reply-chip" role="button" tabindex="0">
+              "Quick update: still on schedule! Full timeline doc coming to you soon."
+              <span class="chip-tone">friendly</span>
+            </div>
+            <div class="reply-chip" role="button" tabindex="0">
+              "On track. Sending detailed timeline by 5pm today. Anything specific they need?"
+              <span class="chip-tone">concise</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="slack-msg" style="flex-direction:row-reverse;margin-top:4px;">
+          <div class="slack-avatar" style="background:var(--mint);color:var(--bg);" aria-hidden="true">Y</div>
+          <div style="text-align:right;">
+            <div class="slack-msg-name" style="text-align:right;">You <span>10:43 AM</span></div>
+            <div class="slack-msg-text" style="background:var(--surface);border:1px solid var(--border);border-radius:10px 10px 2px 10px;padding:8px 12px;display:inline-block;text-align:left;max-width:90%;">
+              We're on track for Sept 12th â I'll send the full breakdown by EOD. ð
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="mock-body">
-      <div class="chat-msg">
-        <div class="avatar orange">ð§</div>
-        <div class="bubble">
-          <div class="name">Alex</div>
-          Hey team â can someone review the Q2 report before the 3pm call? It's a pretty big one and I'd love a second pair of eyes ð
-        </div>
-      </div>
 
-      <div class="buddy-suggestion">
-        <div style="flex-shrink:0;">
-          <div class="buddy-label">â¡ SlackBuddy reply suggestion</div>
-          <div>Hey Alex! I'll take a look right now and drop comments by 2:30 â gives us time before the call. Tagging @Jordan too since they worked on the projections.</div>
-        </div>
+    <div class="mood-card" aria-hidden="true">
+      <div class="mood-card-label">Your mood today</div>
+      <div class="mood-bar-item">
+        <span class="mood-bar-name">Focused</span>
+        <div class="mood-bar-track"><div class="mood-bar-fill" style="background:var(--mint);width:78%;"></div></div>
       </div>
-
-      <div class="chat-msg right">
-        <div class="avatar teal">ð©</div>
-        <div class="bubble">
-          <div class="name">You</div>
-          Hey Alex! I'll take a look right now and drop comments by 2:30 â gives us time before the call. Tagging @Jordan too since they worked on the projections.
-        </div>
+      <div class="mood-bar-item">
+        <span class="mood-bar-name">Stressed</span>
+        <div class="mood-bar-track"><div class="mood-bar-fill" style="background:#FF6B6B;width:22%;"></div></div>
       </div>
-
-      <div style="border-top: 1px solid var(--border); padding-top: 16px;">
-        <div style="font-size: 0.72rem; font-weight: 700; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 10px;">Team mood right now</div>
-        <div class="mood-bar">
-          <div class="mood-chip up">ð Energized Â· 68%</div>
-          <div class="mood-chip mid">ð Neutral Â· 22%</div>
-          <div class="mood-chip low">ð Stressed Â· 10%</div>
-        </div>
+      <div class="mood-bar-item" style="margin-bottom:0;">
+        <span class="mood-bar-name">Creative</span>
+        <div class="mood-bar-track"><div class="mood-bar-fill" style="background:var(--amber);width:55%;"></div></div>
       </div>
     </div>
+
+    <div class="status-card" aria-hidden="true">
+      <span class="status-emoji">ð¯</span>
+      <div>
+        <div class="status-text">In deep focus</div>
+        <div class="status-sub">Status auto-set by SlackBuddy</div>
+      </div>
+    </div>
+  </div>
 </section>
 
 <!-- FEATURES -->
-<section id="features">
-  <div style="max-width:1100px; margin:0 auto;">
-    <div class="section-label">Features</div>
-    <h2>Everything your team needs to communicate better</h2>
-    <p class="section-sub">Two powerful capabilities that make Slack feel like a whole new tool.</p>
-    <div class="features-grid">
+<section class="features" id="features">
+  <div class="features-header">
+    <h2 class="features-title reveal">
+      Everything<br>your Slack<br>was <em>missing</em>.
+    </h2>
+    <p class="features-desc reveal reveal-delay-1">
+      Four capabilities that work together. SlackBuddy doesn't just suggest replies â
+      it understands context, reads your energy, and keeps your presence honest across every channel.
+    </p>
+  </div>
 
-      <div class="feature-card">
-        <div class="feature-icon purple">ð¤</div>
-        <h3>AI-Powered Reply Suggestions</h3>
-        <p>SlackBuddy reads the conversation context and suggests thoughtful, on-brand replies â so you spend less time typing and more time doing. One click to use, always editable.</p>
+  <div class="features-grid reveal">
+    <div class="feature-card featured">
+      <div class="feature-number">01 Â· Core feature</div>
+      <div class="feature-icon mint">ð¤</div>
+      <h3 class="feature-title">Contextual AI Reply Engine</h3>
+      <p class="feature-desc">
+        SlackBuddy reads the full thread, understands the ask, and drafts 3 replies
+        tuned to your usual tone â professional, friendly, or sharp. One click to send. Zero typing required.
+      </p>
+      <div class="feature-demo">
+        <div class="demo-msg-in">"Can you hop on a call later today to go over the design?"</div>
+        <div class="demo-suggestions">
+          <div class="demo-chip" role="button">Sure â 3pm works great</div>
+          <div class="demo-chip" role="button">In back-to-backs today, async?</div>
+          <div class="demo-chip" role="button">Yes! Sending a cal invite now ð</div>
+        </div>
+        <div class="demo-chip chosen">Sure â 3pm works great for me. Sending the invite now!</div>
       </div>
+    </div>
 
-      <div class="feature-card">
-        <div class="feature-icon teal">ð</div>
-        <h3>Real-Time Mood & Status Tracking</h3>
-        <p>Understand how your team is feeling across channels without the awkward check-ins. SlackBuddy surfaces mood signals and energy levels so managers can act before burnout hits.</p>
+    <div class="feature-card amber-accent">
+      <div class="feature-number">02 Â· Wellbeing</div>
+      <div class="feature-icon amber">ð§ </div>
+      <h3 class="feature-title">Mood Intelligence</h3>
+      <p class="feature-desc">
+        Tracks sentiment patterns across your messages over time. Surfaces weekly insights about your
+        energy levels so you can catch burnout before it catches you.
+      </p>
+      <div class="feature-mood-preview">
+        <div class="mood-row">
+          <span class="mood-label">Positive</span>
+          <div class="mood-track"><div class="mood-fill" style="background:var(--mint);width:74%;"></div></div>
+          <span class="mood-val">74%</span>
+        </div>
+        <div class="mood-row">
+          <span class="mood-label">Neutral</span>
+          <div class="mood-track"><div class="mood-fill" style="background:var(--text-muted);width:20%;"></div></div>
+          <span class="mood-val">20%</span>
+        </div>
+        <div class="mood-row">
+          <span class="mood-label">Tense</span>
+          <div class="mood-track"><div class="mood-fill" style="background:#FF6B6B;width:6%;"></div></div>
+          <span class="mood-val">6%</span>
+        </div>
       </div>
+    </div>
 
-      <div class="feature-card">
-        <div class="feature-icon blue">â¡</div>
-        <h3>Context-Aware Intelligence</h3>
-        <p>SlackBuddy learns your team's tone, vocabulary, and communication style over time. Suggestions sound like you â not like a robot.</p>
-      </div>
+    <div class="feature-card">
+      <div class="feature-number">03 Â· Automation</div>
+      <div class="feature-icon violet">â¡</div>
+      <h3 class="feature-title">Status Autopilot</h3>
+      <p class="feature-desc">
+        Syncs with your calendar and message patterns. When you're heads-down or in a meeting,
+        your status updates itself â no more "available" when you're clearly not.
+      </p>
+    </div>
 
-      <div class="feature-card">
-        <div class="feature-icon pink">ð</div>
-        <h3>Privacy First, Always</h3>
-        <p>Your messages stay your messages. SlackBuddy processes signals locally and never trains on your private conversations. Full SOC 2 compliance, zero data selling.</p>
-      </div>
-
+    <div class="feature-card">
+      <div class="feature-number">04 Â· Clarity</div>
+      <div class="feature-icon mint">ð</div>
+      <h3 class="feature-title">Thread TL;DR</h3>
+      <p class="feature-desc">
+        Missed a 200-message thread? One command and SlackBuddy gives you key decisions,
+        action items, and who to follow up with. Catch up in 10 seconds.
+      </p>
     </div>
   </div>
 </section>
 
 <!-- HOW IT WORKS -->
-<section id="how-it-works">
-  <div style="max-width:1100px; margin:0 auto; text-align:center;">
-    <div class="section-label">How it works</div>
-    <h2>Up and running in minutes</h2>
-    <p class="section-sub" style="margin:0 auto 64px;">No complex setup. No IT ticket. Just connect and go.</p>
-    <div class="steps">
-      <div class="step">
-        <div class="step-num">1</div>
-        <h3>Connect your workspace</h3>
-        <p>Install SlackBuddy from the Slack App Directory with one click. Works with any workspace size.</p>
-      </div>
-      <div class="step">
-        <div class="step-num">2</div>
-        <h3>SlackBuddy learns your vibe</h3>
-        <p>It reads recent channel activity to understand your team's tone, topics, and communication patterns.</p>
-      </div>
-      <div class="step">
-        <div class="step-num">3</div>
-        <h3>Communicate smarter</h3>
-        <p>Get reply suggestions as you type and view live mood dashboards for every channel and team member.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- MOOD SECTION -->
-<section id="mood">
-  <div class="mood-section-inner">
+<section class="how" id="how">
+  <div class="how-inner">
     <div>
-      <div class="section-label">Mood AI</div>
-      <h2>Know how your team feels â before they have to say it</h2>
-      <p style="color: var(--muted); font-size: 1rem; line-height: 1.7; margin-bottom: 24px;">
-        Burnout and disengagement don't happen overnight â they build quietly. SlackBuddy's mood tracking surfaces early signals from communication patterns so leaders can check in proactively, not reactively.
+      <p class="section-label">Getting started</p>
+      <h2 class="how-headline reveal">Up and running<br>in 90 seconds.</h2>
+      <p class="how-sub reveal reveal-delay-1">
+        No long setup. No new app to learn. SlackBuddy plugs directly into your existing
+        Slack workspace and starts working immediately.
       </p>
-      <p style="color: var(--muted); font-size: 1rem; line-height: 1.7;">
-        No surveys. No interruptions. Just real-time insight that helps you build a healthier, happier team.
-      </p>
+      <div class="how-steps">
+        <div class="how-step reveal">
+          <div class="step-num">01</div>
+          <div>
+            <div class="step-title">Add to your Slack workspace</div>
+            <div class="step-desc">Click "Add to Slack" and authorize SlackBuddy in under 30 seconds. No credit card required.</div>
+          </div>
+        </div>
+        <div class="how-step reveal reveal-delay-1">
+          <div class="step-num">02</div>
+          <div>
+            <div class="step-title">SlackBuddy learns your voice</div>
+            <div class="step-desc">It reads your recent message history (privately, on-device) to understand how you communicate and calibrate your reply style.</div>
+          </div>
+        </div>
+        <div class="how-step reveal reveal-delay-2">
+          <div class="step-num">03</div>
+          <div>
+            <div class="step-title">Reply, focus, and feel better</div>
+            <div class="step-desc">Suggestions appear inline as you compose. Your status tracks itself. Your mood dashboard updates daily. You justâ¦ work.</div>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="mood-visual">
-      <div class="mood-visual-header">
-        <div class="mood-visual-title">Team Mood â Today</div>
-        <div class="live-badge">
-          <div class="live-dot"></div>
-          LIVE
-        </div>
-      </div>
 
-      <div class="mood-row">
-        <div class="mood-avatar">ð§âð»</div>
-        <div class="mood-info">
-          <div class="mood-name">Alex M.</div>
-          <div class="mood-progress-bar"><div class="mood-progress-fill fill-green" style="width:88%"></div></div>
-        </div>
-        <div class="mood-score">ð 88</div>
+    <div class="how-terminal reveal">
+      <div class="terminal-bar">
+        <div class="terminal-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+        <span class="terminal-title">slackbuddy â setup log</span>
       </div>
-
-      <div class="mood-row">
-        <div class="mood-avatar">ð©âð¨</div>
-        <div class="mood-info">
-          <div class="mood-name">Jordan K.</div>
-          <div class="mood-progress-bar"><div class="mood-progress-fill fill-yellow" style="width:62%"></div></div>
+      <div class="terminal-body" aria-label="SlackBuddy setup log showing successful connection and feature activation">
+        <div class="t-line"><span class="t-prompt">$</span><span class="t-cmd">slackbuddy connect <span style="color:var(--text-muted)">--workspace=acme-co</span></span></div>
+        <div class="t-output">
+          <span class="t-ok">â OAuth handshake complete</span>
+          <span class="t-info">â Reading message history... (private)</span>
+          <span class="t-ok">â Voice profile calibrated in 12s</span>
         </div>
-        <div class="mood-score">ð 62</div>
-      </div>
-
-      <div class="mood-row">
-        <div class="mood-avatar">ð§âð¬</div>
-        <div class="mood-info">
-          <div class="mood-name">Sam R.</div>
-          <div class="mood-progress-bar"><div class="mood-progress-fill fill-blue" style="width:74%"></div></div>
+        <div class="t-line"><span class="t-prompt">$</span><span class="t-cmd">slackbuddy status</span></div>
+        <div class="t-output">
+          <span class="t-ok">â AI reply engine: active</span>
+          <span class="t-ok">â Mood tracking: enabled</span>
+          <span class="t-warn">â¡ Status autopilot: syncing calendar</span>
+          <span class="t-ok">â Thread digest: ready</span>
         </div>
-        <div class="mood-score">ð 74</div>
-      </div>
-
-      <div class="mood-row">
-        <div class="mood-avatar">ð©âð¼</div>
-        <div class="mood-info">
-          <div class="mood-name">Taylor W.</div>
-          <div class="mood-progress-bar"><div class="mood-progress-fill fill-purple" style="width:91%"></div></div>
+        <div class="t-line"><span class="t-prompt">$</span><span class="t-cmd">slackbuddy mood <span style="color:var(--text-muted)">--today</span></span></div>
+        <div class="t-output">
+          <span class="t-info">Positive sentiment: <span style="color:var(--mint)">74%</span> (+8% vs last week)</span>
+          <span class="t-info">Burnout risk: <span style="color:var(--mint)">Low</span></span>
+          <span class="t-info">Best focus window: <span style="color:var(--amber)">10am â 12pm</span></span>
         </div>
-        <div class="mood-score">ð 91</div>
-      </div>
-
-      <div class="mood-insight">
-        <span>ð¡</span>
-        <span><strong>Insight:</strong> Jordan's engagement has dipped 18% this week. Consider a quick 1:1 check-in before end of day.</span>
+        <div class="t-line"><span class="t-prompt">$</span><span class="t-cmd"><span class="t-cursor"></span></span></div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- SOCIAL PROOF -->
-<section id="social-proof">
-  <div class="stats-row">
-    <div class="stat">
-      <div class="stat-num">12k+</div>
-      <div class="stat-label">Beta users</div>
+<!-- STATS -->
+<section class="stats">
+  <div class="stats-inner">
+    <div class="stat-item reveal">
+      <div class="stat-value"><span>2.4k</span>+</div>
+      <div class="stat-label">Teams using SlackBuddy</div>
     </div>
-    <div class="stat">
-      <div class="stat-num">94%</div>
-      <div class="stat-label">Would recommend</div>
+    <div class="stat-item reveal reveal-delay-1">
+      <div class="stat-value amber"><span>87%</span></div>
+      <div class="stat-label">Faster reply time on average</div>
     </div>
-    <div class="stat">
-      <div class="stat-num">3.2Ã</div>
-      <div class="stat-label">Faster responses</div>
+    <div class="stat-item reveal reveal-delay-2">
+      <div class="stat-value"><span>1.2M</span></div>
+      <div class="stat-label">AI replies sent this month</div>
     </div>
-    <div class="stat">
-      <div class="stat-num">40%</div>
-      <div class="stat-label">Reduction in burnout signals</div>
+    <div class="stat-item reveal reveal-delay-3">
+      <div class="stat-value amber"><span>4.9</span>â</div>
+      <div class="stat-label">Average rating on Slack App Directory</div>
     </div>
   </div>
+</section>
 
-  <div class="testimonials">
-    <div class="testimonial">
-      <div class="stars">âââââ</div>
-      <div class="testimonial-text">"SlackBuddy has genuinely changed how our team communicates. The reply suggestions are scarily good â and the mood dashboard helped us catch a struggling team member before things got bad."</div>
+<!-- TESTIMONIALS -->
+<section class="testimonials">
+  <div class="testimonials-header">
+    <p class="section-label">Real teams Â· Real results</p>
+    <h2 class="testimonials-title reveal">Loved by Slack power users</h2>
+    <p class="testimonials-sub reveal reveal-delay-1">Here's what people say after their first week.</p>
+  </div>
+  <div class="testimonials-grid reveal">
+    <div class="testimonial-card">
+      <p class="testimonial-quote">"I was skeptical AI could match my tone, but SlackBuddy absolutely nailed it. My replies actually <strong>sound like me</strong> â just faster. I've cut my Slack time by almost half."</p>
       <div class="testimonial-author">
-        <div class="author-avatar" style="background: rgba(124,58,237,0.2);">ð©</div>
+        <div class="author-avatar" style="background:#4A9FFF;color:white;" aria-hidden="true">S</div>
         <div>
-          <div class="author-name">Sarah Chen</div>
-          <div class="author-role">VP Engineering @ Loom</div>
+          <div class="author-name">Sarah K.</div>
+          <div class="author-role">Head of Product, Notion</div>
         </div>
       </div>
     </div>
-
-    <div class="testimonial">
-      <div class="stars">âââââ</div>
-      <div class="testimonial-text">"We've tried a dozen Slack bots. SlackBuddy is the first one that actually feels like a teammate â not a tool. The AI reply thing is addictive in the best possible way."</div>
+    <div class="testimonial-card">
+      <p class="testimonial-quote">"The <strong>mood tracker is underrated</strong>. I realized I was signaling stress way more than I thought. SlackBuddy helped me see that and actually change how I communicate."</p>
       <div class="testimonial-author">
-        <div class="author-avatar" style="background: rgba(6,214,160,0.15);">ð§</div>
+        <div class="author-avatar" style="background:var(--amber);color:var(--bg);" aria-hidden="true">M</div>
         <div>
-          <div class="author-name">Marcus Williams</div>
-          <div class="author-role">Head of People @ Arc</div>
+          <div class="author-name">Marcus T.</div>
+          <div class="author-role">Engineering Lead, Linear</div>
         </div>
       </div>
     </div>
-
-    <div class="testimonial">
-      <div class="stars">âââââ</div>
-      <div class="testimonial-text">"The mood tracking alone is worth it. As a remote-first team, we lost so much visibility into how people were doing. SlackBuddy gave that back to us in a really thoughtful, non-invasive way."</div>
+    <div class="testimonial-card">
+      <p class="testimonial-quote">"Status autopilot alone is worth it. I manage three channels and my status was always wrong â until SlackBuddy started handling it. <strong>Teammates actually respect my focus time now.</strong>"</p>
       <div class="testimonial-author">
-        <div class="author-avatar" style="background: rgba(251,191,36,0.15);">ð©</div>
+        <div class="author-avatar" style="background:var(--violet);color:white;" aria-hidden="true">J</div>
         <div>
-          <div class="author-name">Priya Nair</div>
-          <div class="author-role">CEO @ Plaintext</div>
+          <div class="author-name">Jade L.</div>
+          <div class="author-role">Design Lead, Figma</div>
         </div>
       </div>
     </div>
@@ -1063,32 +602,55 @@
 </section>
 
 <!-- CTA -->
-<section id="cta">
-  <div class="cta-inner">
-    <h2>Ready to meet your<br/><span class="gradient">new Slack buddy?</span></h2>
-    <p>Join 12,000+ people already communicating smarter. Free for teams up to 10 people.</p>
-    <div class="email-form">
-      <input type="email" placeholder="you@company.com" />
-      <button type="submit">Get early access â</button>
-    </div>
-    <div class="cta-note">No credit card required Â· Takes 60 seconds to set up Â· Cancel anytime</div>
+<section class="cta-section">
+  <p class="cta-label reveal">Early access Â· Free to start</p>
+  <h2 class="cta-title reveal reveal-delay-1">Your Slack.<br><em>Upgraded</em>.</h2>
+  <p class="cta-sub reveal reveal-delay-2">
+    Join thousands of teams that reply smarter, communicate with intention,
+    and protect their focus â without ever leaving Slack.
+  </p>
+  <div class="cta-form reveal reveal-delay-3">
+    <label for="email-cta" class="sr-only">Work email address</label>
+    <input type="email" id="email-cta" class="cta-input" placeholder="your@work.email">
+    <button class="btn-primary" type="submit">Get early access</button>
   </div>
+  <p class="cta-disclaimer">No credit card. Takes 90 seconds. Cancel anytime.</p>
 </section>
 
-<!-- FOOTER -->
 <footer>
-  <a href="#" class="footer-logo">
-    <div class="logo-icon">ð¤</div>
-    SlackBuddy
-  </a>
-  <ul class="footer-links">
-    <li><a href="#">Privacy</a></li>
-    <li><a href="#">Terms</a></li>
-    <li><a href="#">Security</a></li>
-    <li><a href="#">Contact</a></li>
-  </ul>
-  <div class="footer-copy">Â© 2026 SlackBuddy. All rights reserved.</div>
+  <div class="footer-left">
+    <a href="#" class="footer-logo" aria-label="SlackBuddy home">
+      <div class="footer-logo-mark" aria-hidden="true">SB</div>
+      <span class="footer-logo-text">SlackBuddy</span>
+    </a>
+    <span class="footer-copy">Â© 2026 SlackBuddy. Not affiliated with Slack Technologies.</span>
+  </div>
+  <div class="footer-links">
+    <a href="#">Privacy</a>
+    <a href="#">Terms</a>
+    <a href="#">Security</a>
+    <a href="#">Status</a>
+  </div>
 </footer>
 
+<style>.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0;}</style>
+
+<script>
+// Scroll reveal
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// Cycle reply chip selection
+function cycleChips() {
+  const chips = document.querySelectorAll('.reply-chip');
+  if (!chips.length) return;
+  const idx = Array.from(chips).findIndex(c => c.classList.contains('selected'));
+  chips[idx]?.classList.remove('selected');
+  chips[(idx + 1) % chips.length].classList.add('selected');
+}
+setInterval(cycleChips, 3000);
+</script>
 </body>
 </html>
